@@ -1,0 +1,151 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    width: 100vw;
+    height: 100vh;
+    background-color: #f8f9fa; 
+}
+
+main {
+    display: flex;
+    width: 90%;
+    max-width: 1000px; 
+    height: 80vh;
+    justify-content: space-between;
+}
+
+section {
+    display: flex;
+    flex-direction: column;
+    width: 48%; 
+    height: 100%;
+    background-color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+    border-radius: 20px;
+    overflow-y: scroll;
+}
+
+.title {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+    font-size: 30px;
+    font-weight: 700;
+    font-weight: bold;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    padding: 30px 0;
+    color: white;
+}
+
+.to-do {
+    background-color: #4d81b1; 
+    gap: 20px;
+}
+
+.complete {
+    background-color: #f1c40f; 
+}
+
+#input-box {
+    display: flex;
+    margin: 20px auto;
+    width: 80%;
+    background-color: #f1f3f5;
+    border-radius: 10px;
+    padding: 10px 15px;
+}
+
+#input-box:focus-within {
+    background-color: #cfe7ff;
+}
+
+input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 16px;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    font-weight: 600;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+#input {
+    background-color: #4d81b1;
+    color: white;
+    padding: 8px 16px;
+}
+
+.row {
+    display: flex;
+    width: 90%;
+    margin: 0 auto;
+    padding: 12px 0;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.text-box {
+    flex: 1;
+    font-size: 15px;
+    color: #343a40;
+}
+
+.done-text {
+    text-decoration: line-through;
+    color: #adb5bd;
+}
+
+
+.complete-btn, .del-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+}
+
+.complete-btn {
+    background-color: #e7f5ff;
+    color: #228be6;
+}
+
+.del-btn {
+    background-color: #fff5f5;
+    color: #fa5252;
+}
+
+.del-btn:hover {
+    background-color: #fa5252;
+    color: white;
+}
+
+.done-btn {
+    background-color: #dee2e6; 
+    color: #868e96; 
+
+}
+
+@media all and (max-width:970px){
+    main{
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+    }
+    article{
+        width: 90%;
+    }
+}
