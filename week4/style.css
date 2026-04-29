@@ -1,0 +1,24 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+body{
+    margin-top:80px;
+}
+.example{
+    width:50%;
+    height:500px;
+    background-color:yellow;
+}
+.example1{
+    width:50%;
+    height:500px;
+    background-color:red;
+}
+
+.container{
+    max-width:1200px;
+    margin:0 auto;
+    padding: 20px;
+}
