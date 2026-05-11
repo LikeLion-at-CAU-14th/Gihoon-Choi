@@ -1,0 +1,42 @@
+body {
+    background-color: rgb(77, 188, 185);
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: rgb(88, 88, 203);
+    color: #ffffff;
+    padding: 20px;
+    margin: 50px;
+    text-align: center;
+    border: 5px solid #000000;
+    border-radius: 20px;
+}
+
+main {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: flex-start;
+    gap: 50px;
+    padding: 20px;
+}
+
+.image img {
+    width: 300px;
+    border: 3px dashed rgb(0, 21, 255);
+    border-radius: 50px;
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+nav a {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: bold;
+}
