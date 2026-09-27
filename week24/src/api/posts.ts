@@ -62,5 +62,14 @@ export async function addPost({ title, content }: AddPostInput) : Promise<Post> 
 }
 
 // [과제 1-1] 게시글 상세 조회 함수 작성하기
+export async function getPost(id: number): Promise<Post | undefined> { 
+    await delay(500); 
+    return posts.find((post) => post.id === id); 
+}
 
 // [과제 1-2] 게시글 삭제 함수 작성하기
+export async function deletePost(id: number): Promise<void> {
+    await delay(500); 
+    posts = posts.filter((post) => post.id !== id); 
+    savePosts(posts); 
+}
