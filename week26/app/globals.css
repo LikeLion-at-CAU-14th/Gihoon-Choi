@@ -78,15 +78,18 @@ main {
   font-weight: 600;
 }
 
+
 .movie-detail {
   display: flex;
   gap: 40px;
   align-items: flex-start;
 
-  background: white;
+  background: #242424;
+  color: white;
   padding: 30px;
   border-radius: 12px;
 }
+
 
 .movie-detail p {
   line-height: 1.7;
@@ -141,18 +144,22 @@ header a {
   flex-wrap: wrap;
 }
 
+
 .review-card {
   width: 220px;
   padding: 20px;
   border: 1px solid #ddd;
   border-radius: 12px;
   background: white;
+  color: #222;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .review-rating {
   margin-bottom: 12px;
+  color: #222;
 }
+
 
 /* 과제 4 활용 */
 .header {
@@ -173,4 +180,8 @@ header a {
 
 .header nav a {
   font-weight: 600;
+}
+
+.header a {
+  color: #222;
 }

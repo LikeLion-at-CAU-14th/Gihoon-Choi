@@ -1,4 +1,14 @@
-import { movies } from '@/data/movies';
+
+import { movies } from "@/data/movies";
+import { notFound } from "next/navigation";
+import Image from "next/image";
+import { Noto_Serif_KR } from "next/font/google";
+import MovieReviewsButton from "@/components/MovieReviewsButton";
+
+const detailFont = Noto_Serif_KR({
+  weight: "400",
+  subsets: ["latin"],
+});
 
 interface MovieDetailPageProps {
   params: Promise<{
@@ -16,26 +26,33 @@ export default async function MovieDetailPage({
   );
 
   if (!movie) {
-    return <p>영화를 찾을 수 없습니다.</p>;
+    notFound();
   }
 
   return (
     <main>
-      <h1>{movie.title}</h1>
-      
-      <img
-        src={movie.image}
-        alt={movie.title}
-      />
+      <div className={`movie-detail ${detailFont.className}`}>
+        <Image
+          src={movie.image}
+          alt={movie.title}
+          width={300}
+          height={420}
+        />
 
-      <p>
-        {movie.year} · {movie.genre} · {movie.director}
-      </p>
+        <section>
+          <h1>{movie.title}</h1>
 
-      <p style={{ whiteSpace: 'pre-line' }}>{movie.description}</p>
+          <p>
+            {movie.year} · {movie.genre} · {movie.director}
+          </p>
 
-      {/*과제3 - 관람평 불러오기*/}
+          <p style={{ whiteSpace: "pre-line" }}>
+            {movie.description}
+          </p>
 
+          <MovieReviewsButton />
+        </section>
+      </div>
     </main>
   );
 }
