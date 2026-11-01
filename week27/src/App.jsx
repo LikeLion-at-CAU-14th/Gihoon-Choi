@@ -1,146 +1,230 @@
-import { useState } from "react";
+
+import { useState, useRef, useEffect } from "react";
 import "./App.css";
+
+// KBO 구단 목록
+const teams = [
+  "삼성 라이온즈",
+  "LG 트윈스",
+  "KIA 타이거즈",
+  "두산 베어스",
+  "KT 위즈",
+  "SSG 랜더스",
+  "롯데 자이언츠",
+  "한화 이글스",
+  "NC 다이노스",
+  "키움 히어로즈",
+];
+
+const suggestions = [
+  {
+    icon: "📖",
+    title: "야구 규칙",
+    question: "야구의 스트라이크와 볼의 차이를 쉽게 설명해 줘.",
+  },
+  {
+    icon: "📊",
+    title: "야구 기록",
+    question: "타자의 OPS가 무엇인지 예시와 함께 설명해 줘.",
+  },
+  {
+    icon: "⚾",
+    title: "야구 전략",
+    question: "무사 1루 상황에서 희생번트와 강공의 차이를 설명해 줘.",
+  },
+  {
+    icon: "🦁",
+    title: "삼성 라이온즈",
+    question: "삼성 라이온즈의 역사와 대표적인 특징을 소개해 줘.",
+  },
+];
+
+const initialMessage = {
+  role: "assistant",
+  text: "안녕하세요! ⚾\n야구를 더 재미있게 즐길 수 있도록 도와주는 Baseball AI입니다.\n\n야구 규칙부터 선수 기록, 경기 전략까지 무엇이든 물어보세요!\n\n오늘도 야구와 함께 즐거운 하루 보내세요! 🦁",
+  time: "WELCOME",
+};
 
 function App() {
   const [input, setInput] = useState("");
-
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      text: "안녕하세요! 무엇이든 물어보세요 👋",
-    },
-  ]);
-
+  const [selectedTeam, setSelectedTeam] = useState("삼성 라이온즈");
+  const [messages, setMessages] = useState([initialMessage]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const sendMessage = async () => { // 비동기 함수 선언
-    if (!input.trim() || loading) return;
+  const chatBodyRef = useRef(null);
+  const inputRef = useRef(null);
 
-    const userMessage = input.trim();
+  // 새 메시지가 추가되면 채팅창을 아래로 이동
+  useEffect(() => {
+    if (chatBodyRef.current) {
+      chatBodyRef.current.scrollTo({
+        top: chatBodyRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [messages, loading]);
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "user",
-        text: userMessage,
-      },
-    ]);
+  // 시간 표시
+  const getCurrentTime = () => {
+    return new Date().toLocaleTimeString("ko-KR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
+  // Gemini API 직접 호출
+  const sendMessage = async (customMessage) => {
+    const userMessage = (customMessage ?? input).trim();
+
+    if (!userMessage || loading) return;
+
+    const newUserMessage = {
+      role: "user",
+      text: userMessage,
+      time: getCurrentTime(),
+    };
+
+    // 기존 대화에 사용자 메시지 추가
+    const updatedMessages = [...messages, newUserMessage];
+
+    setMessages(updatedMessages);
     setInput("");
     setLoading(true);
+    setError("");
 
     try {
-      // 1. 환경변수(.env)에서 Gemini API Key 가져오기
-      // API Key는 .env 파일에 VITE_GEMINI_API_KEY로 저장되어 있어야 함
-
-      // ===== TODO 1: API Key 가져오기 =====
+      // 1. 환경변수에서 API Key 가져오기
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      // ======================================
 
-
-      // 2. 사용할 Gemini AI 모델 지정
-      const model = "gemini-3.6-flash";
-
-      // API Key가 존재하지 않으면 오류 발생
       if (!apiKey) {
         throw new Error(
-          "API Key를 찾을 수 없습니다. .env 파일을 확인해주세요."
+          "API Key를 찾을 수 없습니다. .env 파일을 확인해 주세요."
         );
       }
 
+      // 2. 사용할 Gemini 모델 지정
+      const model = "gemini-3.5-flash-lite";
 
-      // 3. Gemini API 요청 URL 생성
-      // 모델명과 API Key를 이용해 요청할 주소를 구성
-      // ===== TODO 2: API 요청 URL 생성 =====
+      // 3. API 요청 URL 생성
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
+      // 4. 이전 대화 내용을 Gemini API 형식으로 변환
+      const conversationHistory = updatedMessages
+        .filter((message) => message.time !== "WELCOME")
+        .map((message) => ({
+          role: message.role === "user" ? "user" : "model",
+          parts: [{ text: message.text }],
+        }));
 
-      // ======================================
+      // 5. Request Body 생성
+      const requestBody = {
+        systemInstruction: {
+          parts: [
+            {
+              text: `
+                너는 Baseball AI라는 이름의 친절한 야구 전문 AI 챗봇이다.
 
-      console.log("REQUEST MODEL:", model);
+                주요 역할:
+                1. KBO와 야구 규칙을 쉽고 정확하게 설명한다.
+                2. 야구 기록(AVG, ERA, OPS, WHIP 등)을 설명한다.
+                3. 야구 전술과 경기 상황을 분석한다.
+                4. 야구를 처음 접하는 사람도 이해할 수 있도록 답변한다.
+                5. 사용자가 선택한 응원팀은 ${selectedTeam}이다.
+                6. 해당 팀에 관한 질문에는 관련 내용을 중심으로 답변한다.
 
+                답변 원칙:
+                - 친절하고 자연스러운 한국어를 사용한다.
+                - 어려운 야구 용어는 쉽게 풀어서 설명한다.
+                - 적절한 이모지를 사용해 가독성을 높인다.
+                - 확인되지 않은 경기 결과나 선수 기록을 사실처럼 말하지 않는다.
+                - 실시간 경기 정보가 필요하면 실시간 데이터에 접근할 수 없다는 점을 알린다.
+                - 질문과 관련 없는 내용을 길게 설명하지 않는다.
+              `,
+            },
+          ],
+        },
+        contents: conversationHistory,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2048,
+        },
+      };
 
-      // 4. fetch()를 이용해 Gemini API에 요청 보내기
-      // await: 비동기 작업이 완료될 때까지 기다린 후 결과를 받음
+      // 6. Request 정보 확인
+      console.log("========== GEMINI API REQUEST ==========");
+      console.log("REQUEST URL:", url.replace(apiKey, "HIDDEN_API_KEY"));
+      console.log("REQUEST METHOD: POST");
+      console.log("REQUEST HEADERS:", {
+        "Content-Type": "application/json",
+      });
+      console.log("REQUEST BODY:", requestBody);
 
-      // ===== TODO 3: Gemini API 호출 =====
-      // fetch(), POST, headers, body 작성
+      // 7. fetch()를 이용해 API에 요청 전송
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts:[{text: userMessage}] }],
-        }),
+        body: JSON.stringify(requestBody),
       });
 
-      // ======================================
-
-
-      // 6. Gemini API에서 받은 응답을 JSON 객체로 변환
+      // 8. Response JSON 변환
       const data = await response.json();
 
+      console.log("========== GEMINI API RESPONSE ==========");
       console.log("HTTP STATUS:", response.status);
-      console.log("Gemini Response:", data);
+      console.log("RESPONSE OK:", response.ok);
+      console.log("RESPONSE DATA:", data);
 
-      // 7. API 요청이 실패한 경우 오류 처리
-      // HTTP 상태 코드가 정상 범위(200~299)가 아니면 오류 발생
+      // 9. HTTP 오류 처리
       if (!response.ok) {
         throw new Error(
           data?.error?.message ||
-            `Gemini API 요청에 실패했습니다. (${response.status})`
+            `API 요청 실패 (HTTP ${response.status})`
         );
       }
 
+      // 10. AI 응답 텍스트 추출
+      const aiText =
+        data?.candidates?.[0]?.content?.parts
+          ?.map((part) => part.text)
+          .filter(Boolean)
+          .join("\n") || "AI 응답을 가져오지 못했습니다.";
 
-      // 8. API 응답에서 AI가 생성한 텍스트 추출
-      // candidates: AI가 생성한 응답 후보
-      // content.parts: 응답을 구성하는 여러 데이터
-      // map(): 각 데이터에서 텍스트만 추출
-      // filter(Boolean): 비어 있는 텍스트 제거
-      // join("\n"): 여러 텍스트를 줄바꿈으로 연결
-
-      // ===== TODO 4: AI 응답 텍스트 추출 =====
-      const aiText = data?.candidates[0]?.content?.parts
-        ?.map((part) => part.text)
-        .filter(Boolean)
-        .join("\n")||"AI 응답이 없습니다.";
-
-      // ======================================
-
-
-      // 9. AI 응답을 messages 배열에 추가
-      // React 상태가 변경되면서 채팅 화면에 AI 메시지가 표시됨
+      // 11. AI 응답을 채팅창에 추가
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
           text: aiText,
+          time: getCurrentTime(),
         },
       ]);
-
     } catch (error) {
-      // 10. API 호출 과정에서 오류가 발생하면 실행
-      // 오류 내용을 콘솔에 출력
       console.error("Gemini API Error:", error);
 
-      // 사용자에게 오류 메시지 표시
+      const errorMessage = error.message || "알 수 없는 오류가 발생했습니다.";
+
+      setError(errorMessage);
+
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          text: `오류가 발생했습니다.\n${error.message}`,
+          text: `죄송합니다. 응답을 생성하지 못했습니다.\n\n오류 내용: ${errorMessage}`,
+          time: getCurrentTime(),
+          isError: true,
         },
       ]);
-
     } finally {
-      // 11. API 요청 성공 여부와 관계없이 로딩 상태 종료
+      // 성공과 실패에 관계없이 로딩 종료
       setLoading(false);
+      inputRef.current?.focus();
     }
   };
 
-
+  // Enter 전송 / Shift + Enter 줄바꿈
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -148,83 +232,214 @@ function App() {
     }
   };
 
+  // 새로운 대화 시작
+  const resetChat = () => {
+    if (loading) return;
+
+    setMessages([initialMessage]);
+    setInput("");
+    setError("");
+    inputRef.current?.focus();
+  };
+
   return (
     <div className="app">
-      <div className="chat-container">
+      <div className="stadium-glow glow-one" />
+      <div className="stadium-glow glow-two" />
 
+      <div className="chat-container">
+        {/* Header */}
         <header className="chat-header">
-          <div>
-            <h1>Likelion CAU Chatbot 🦁</h1>
-            <p>week27 AI API 실습</p>
+          <div className="brand">
+            <div className="brand-logo">⚾</div>
+
+            <div className="brand-info">
+              <h1>BASEBALL AI</h1>
+              <p>YOUR PERSONAL BASEBALL COMPANION</p>
+            </div>
           </div>
 
-          <div className="status">
-            <span />
-            Online
+          <div className="header-actions">
+            <div className="online-status">
+              <span className="online-dot" />
+              ONLINE
+            </div>
+
+            <button
+              className="reset-button"
+              onClick={resetChat}
+              disabled={loading}
+              title="새로운 대화"
+            >
+              ↻ <span>새 대화</span>
+            </button>
           </div>
         </header>
 
-        <main className="chat-body">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`message-row ${
-                message.role === "user"
-                  ? "user-row"
-                  : "assistant-row"
-              }`}
-            >
-              {message.role === "assistant" && (
-                <div className="avatar">
-                  멋사AI
-                </div>
-              )}
+        {/* Team Selection */}
+        <section className="team-section">
+          <div className="team-label">
+            <span>🏟️</span>
+            <span>MY FAVORITE TEAM</span>
+          </div>
 
+          <select
+            className="team-select"
+            value={selectedTeam}
+            onChange={(e) => setSelectedTeam(e.target.value)}
+            disabled={loading}
+          >
+            {teams.map((team) => (
+              <option key={team} value={team}>
+                {team}
+              </option>
+            ))}
+          </select>
+        </section>
+
+        {/* Chat Body */}
+        <main className="chat-body" ref={chatBodyRef}>
+          <div className="chat-date">
+            <span>PLAY BALL!</span>
+          </div>
+
+          {/* Welcome Banner */}
+          {messages.length === 1 && (
+            <section className="welcome-banner">
+              <div className="welcome-decoration">⚾</div>
+
+              <div className="welcome-content">
+                <span className="welcome-tag">BASEBALL KNOWLEDGE PARTNER</span>
+                <h2>야구의 모든 순간을<br />더 재미있게!</h2>
+                <p>
+                  규칙, 기록, 전략까지.
+                  <br />
+                  궁금한 야구 이야기를 자유롭게 물어보세요.
+                </p>
+              </div>
+
+              <div className="welcome-bottom">
+                <span>EST. 2026</span>
+                <span>LET'S PLAY BALL!</span>
+              </div>
+            </section>
+          )}
+
+          {/* Suggested Questions */}
+          {messages.length === 1 && (
+            <section className="suggestions">
+              <div className="section-heading">
+                <span className="heading-line" />
+                <h3>QUICK QUESTIONS</h3>
+                <span className="heading-line" />
+              </div>
+
+              <div className="suggestion-grid">
+                {suggestions.map((item) => (
+                  <button
+                    className="suggestion-card"
+                    key={item.title}
+                    onClick={() => sendMessage(item.question)}
+                    disabled={loading}
+                  >
+                    <span className="suggestion-icon">{item.icon}</span>
+                    <span className="suggestion-title">{item.title}</span>
+                    <span className="suggestion-arrow">↗</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Messages */}
+          <div className="message-list">
+            {messages.map((message, index) => (
               <div
-                className={`message ${
-                  message.role === "user"
-                    ? "user-message"
-                    : "assistant-message"
+                key={index}
+                className={`message-row ${
+                  message.role === "user" ? "user-row" : "assistant-row"
                 }`}
               >
-                {message.text}
-              </div>
-            </div>
-          ))}
+                {message.role === "assistant" && (
+                  <div className="avatar">⚾</div>
+                )}
 
+                <div className="message-content">
+                  <div className="message-name">
+                    {message.role === "user" ? "YOU" : "BASEBALL AI"}
+                  </div>
+
+                  <div
+                    className={`message ${
+                      message.role === "user"
+                        ? "user-message"
+                        : "assistant-message"
+                    } ${message.isError ? "error-message" : ""}`}
+                  >
+                    {message.text}
+                  </div>
+
+                  <span className="message-time">
+                    {message.time === "WELCOME" ? "" : message.time}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Loading */}
           {loading && (
             <div className="message-row assistant-row">
-              <div className="avatar">
-                멋사AI
-              </div>
+              <div className="avatar">⚾</div>
 
-              <div className="message assistant-message loading-message">
-                <span />
-                <span />
-                <span />
+              <div className="message-content">
+                <div className="message-name">BASEBALL AI</div>
+
+                <div className="message assistant-message loading-message">
+                  <span />
+                  <span />
+                  <span />
+                  <small>야구 이야기를 생각하고 있어요...</small>
+                </div>
               </div>
             </div>
           )}
         </main>
 
-        <div className="chat-input-area">
-          <textarea
-            value={input}
-            onChange={(e) =>
-              setInput(e.target.value)
-            }
-            onKeyDown={handleKeyDown}
-            placeholder="메시지를 입력하세요..."
-            rows={1}
-          />
+        {/* Input */}
+        <footer className="chat-footer">
+          {error && (
+            <div className="error-notice">
+              <span>!</span>
+              마지막 요청에서 오류가 발생했습니다. 위 메시지를 확인해 주세요.
+            </div>
+          )}
 
-          <button
-            onClick={sendMessage}
-            disabled={!input.trim() || loading}
-          >
-            {loading ? "전송 중..." : "보내기"}
-          </button>
-        </div>
+          <div className="input-container">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="야구에 관해 무엇이든 물어보세요..."
+              rows={1}
+              disabled={loading}
+            />
+
+            <button
+              className="send-button"
+              onClick={() => sendMessage()}
+              disabled={!input.trim() || loading}
+            >
+              {loading ? "..." : "➤"}
+            </button>
+          </div>
+
+          <div className="footer-info">
+            <span>⚾ BASEBALL AI · POWERED BY GEMINI</span>
+            <span>ENTER TO SEND · SHIFT + ENTER FOR NEW LINE</span>
+          </div>
+        </footer>
       </div>
     </div>
   );
