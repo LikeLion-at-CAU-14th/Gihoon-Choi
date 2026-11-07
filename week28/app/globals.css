@@ -1,0 +1,139 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Noto Sans KR", sans-serif;
+  background: #fafafa;
+  color: #1a1a1a;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.site-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #eee;
+  background: #fff;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ff7710;
+}
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+/* 목록 페이지 */
+.page-title {
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.page-desc {
+  margin-top: 8px;
+  color: #777;
+}
+
+.album-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.album-card {
+  display: block;
+  padding: 12px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.album-cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+.album-title {
+  margin-top: 12px;
+  font-weight: 700;
+}
+
+.album-artist {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #777;
+}
+
+/* 상세 페이지 */
+.back-link {
+  color: #777;
+}
+
+.detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  margin-top: 24px;
+}
+
+.detail-cover {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  border-radius: 16px;
+}
+
+.detail-info {
+  flex: 1;
+  min-width: 260px;
+}
+
+.detail-genre {
+  font-size: 14px;
+  color: #ff7710;
+  font-weight: 700;
+}
+
+.detail-title {
+  margin-top: 8px;
+  font-size: 36px;
+  font-weight: 800;
+}
+
+.detail-artist {
+  margin-top: 4px;
+  font-size: 18px;
+  color: #555;
+}
+
+.detail-desc {
+  margin-top: 20px;
+  line-height: 1.6;
+}
+
+.track-heading {
+  margin-top: 32px;
+  font-weight: 700;
+}
+
+.track-list {
+  margin-top: 12px;
+  padding-left: 20px;
+  line-height: 2;
+}
