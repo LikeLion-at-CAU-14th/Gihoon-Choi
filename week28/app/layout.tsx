@@ -1,13 +1,21 @@
+
 import Link from "next/link";
 import "./globals.css";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 
-export const metadata:Metadata ={
-  title: {default: "나의 앨범", template: "%s | 나의 앨범"},
+export const metadata: Metadata = {
+  title: {
+    default: "나의 앨범",
+    template: "%s | 나의 앨범",
+  },
   description: "요즘 내가 듣는 앨범들",
+  openGraph: {
+    title: "나의 앨범",
+    description: "요즘 내가 듣는 앨범들",
+    locale: "ko_KR",
+    type: "website",
+  },
 };
-
-// 과제: metadata에 openGraph 추가해서 링크 미리보기 꾸미기
 
 export default function RootLayout({
   children,
